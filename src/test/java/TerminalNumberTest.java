@@ -1,61 +1,45 @@
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class TerminalNumberTest {
 
-    @Test
-    public void findAllElementsOfArray() {
-        String stringWithIds = "T1004, , TEWAD, T1WER, T43234, T234F, T1005, T2342Q, T1999,T1213T1232"; // in T1999 Latin "T"
-        String[] arrayOfStringsWitIds = new String[]{
-                "T1005, ,T1004,Т1999",          // in T1999 Cyrillic "T"
-                " T1008, ,Т1004, ,T1005,T1999", // in T1004 Cyrillic "T"
-                "T1009, ,T1005,T1004,",
-                "T1004, ,T1006, T1007,",
-                "T1006, ,T1001, ,",
-                " T1999, T1004,T1005 "          // in T1999 Latin "T"
-        };
+    private static final Logger logger = LoggerFactory.getLogger(TerminalNumberTest.class);
+
+    @ParameterizedTest(name = "{displayName} [{arguments}]")
+    @DisplayName("Проверка поиска нужных элементов")
+    @MethodSource("util.TestRunData#findAllElementsOfArray")
+    void findAllElementsOfArray(String stringWithIds, String[] arrayOfStringsWitIds, List<String> expectedIds) {
         List<String> foundElements = TerminalNumber.findAllElementsOfArray(stringWithIds, arrayOfStringsWitIds);
-
-        List<String> expectedIds = new ArrayList<>();
-        expectedIds.add("T1005, ,T1004,Т1999");          // in T1999 Cyrillic "T"
-        expectedIds.add(" T1008, ,Т1004, ,T1005,T1999"); // in T1004 Cyrillic "T"
-        expectedIds.add(" T1999, T1004,T1005 ");         // in T1999 Latin "T"
-
-        Assert.assertTrue("Expected id not found in array element", foundElements.containsAll(expectedIds));
+        Assertions.assertTrue(foundElements.containsAll(expectedIds), "Expected id not found in array element. Actual " + foundElements + ", but expected" + expectedIds);
     }
 
-    @Test
-    public void writeToCsv() {
-        String stringWithIds = "T1004, , TEWAD, T1WER, T43234, T234F, T1005";
-        String[] arrayOfStringsWitIds = new String[]{
-                "T1005, ,T1004,",
-                " T1008, ,T1004, ,T1005,",
-                "T1009, ,T1005,"
-        };
+    @ParameterizedTest(name = "{displayName} [{arguments}]")
+    @DisplayName("Проверка записи элементов в csv файл и его содержимого")
+    @MethodSource("util.TestRunData#writeToCsv")
+    public void writeToCsv(String stringWithIds, String[] arrayOfStringsWitIds, String[] expectedIds) {
         TerminalNumber.findAllElementsOfArray(stringWithIds, arrayOfStringsWitIds);
 
         int i = 0;
-        String[] expectedIds = new String[]{
-                "id,taskId",
-                "1,T1005, ,T1004,",
-                "2, T1008, ,T1004, ,T1005,"
-        };
         String filename = "build" + File.separator + "taskId.csv";
-        try(Stream<String> stream = Files.lines(Paths.get(filename))) {
+        try(Stream<String> stream = Files.lines(Paths.get(filename), Charset.defaultCharset())) {
             for (String line : (Iterable<String>) stream::iterator) {
-                Assert.assertEquals("Incorrect id entry in csv", line, expectedIds[i]);
+                Assertions.assertEquals(line, expectedIds[i], "Incorrect id entry in csv");
                 ++i;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
     }
 }

@@ -1,3 +1,6 @@
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -6,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class TerminalNumber {
 
+    private static final Logger logger = LoggerFactory.getLogger(TerminalNumber.class);
     private static String filename = "build" + File.separator + "taskId.csv";
     private static String regex = "T\\d{4}";
 
@@ -69,7 +73,7 @@ public class TerminalNumber {
                 sb.setLength(0);
             }
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
     }
 }
