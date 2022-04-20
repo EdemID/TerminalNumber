@@ -39,7 +39,8 @@ public class TerminalNumberTest {
                 ++i;
             }
         } catch (IOException e) {
-            logger.info(e.getMessage());
+            logger.info("No such file: " + e.getMessage());
+            Assertions.fail("No such file: " + e.getMessage());
         }
     }
 }
